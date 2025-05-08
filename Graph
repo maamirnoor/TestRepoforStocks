@@ -1,0 +1,44 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# STEP 1: Clean the 'Date' and 'Revenue' columns
+gme_data['Date'] = pd.to_datetime(gme_data['Date'], errors='coerce')
+gme_revenue['Date'] = pd.to_datetime(gme_revenue['Date'], errors='coerce')
+
+# STEP 2: Clean the 'Revenue' column (remove $ and , and convert to float)
+gme_revenue['Revenue'] = gme_revenue['Revenue'].replace({'\$': '', ',': ''}, regex=True)
+gme_revenue['Revenue'] = gme_revenue['Revenue'].replace('', '0')
+gme_revenue['Revenue'] = pd.to_numeric(gme_revenue['Revenue'], errors='coerce')
+
+# STEP 3: Drop rows with invalid dates or missing data
+gme_data.dropna(subset=['Date', 'Close'], inplace=True)
+gme_revenue.dropna(subset=['Date', 'Revenue'], inplace=True)
+
+# STEP 4: Define the make_graph function
+def make_graph(stock_data, revenue_data, stock_name):
+    fig, ax1 = plt.subplots(figsize=(14, 6))
+
+    # Filter data up to June 2021
+    stock_data = stock_data[stock_data['Date'] <= '2021-06-30']
+    revenue_data = revenue_data[revenue_data['Date'] <= '2021-06-30']
+
+    # Plot stock price
+    ax1.plot(stock_data['Date'], stock_data['Close'], color='blue', label='Stock Price')
+    ax1.set_xlabel('Date')
+    ax1.set_ylabel('Stock Price ($)', color='blue')
+    ax1.tick_params(axis='y', labelcolor='blue')
+    ax1.legend(loc='upper left')
+
+    # Plot revenue on a second y-axis
+    ax2 = ax1.twinx()
+    ax2.plot(revenue_data['Date'], revenue_data['Revenue'], color='red', label='Revenue')
+    ax2.set_ylabel('Revenue ($)', color='red')
+    ax2.tick_params(axis='y', labelcolor='red')
+    ax2.legend(loc='upper right')
+
+    plt.title(f"{stock_name} Stock Price vs Revenue (Up to June 2021)")
+    plt.grid()
+    plt.show()
+
+# STEP 5: Call the function
+make_graph(gme_data, gme_revenue, 'GameStop')
